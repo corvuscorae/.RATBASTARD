@@ -1,4 +1,6 @@
-class LVL_1 extends Phaser.Scene {
+class LVL_1 extends Phaser.Scene { 
+    curve;
+    path;
     constructor() {
         super("lvl_1");
         this.my = {sprite: {}};
@@ -8,10 +10,12 @@ class LVL_1 extends Phaser.Scene {
         this.throwSpeed = 5;
 
         // townie stuff
-        this.townieNumber = 0;
-        this.townieSpawnTimer = 5;
-        this.townieSpawnCounter = 0;
-        this.towniesKilled = 0;
+        this.my.sprite.townie = [];
+        this.maxTownies = 10;
+        this.townieCooldown = 10;
+        this.townieCountdown = 0;
+        this.delay = 100;
+        this.i = -1;
 
         this.potionCooldown = 3;
         this.cooldownCounter = 0;
@@ -60,15 +64,6 @@ class LVL_1 extends Phaser.Scene {
         my.sprite.wizard = new Player(
             this, game.config.width/2, 40, "wizard", null, this.left, this.right, 5);
         my.sprite.wizard.setScale(3);
-        
-        // make townie group
-        my.sprite.townieGroup = this.add.group({
-            active: true,
-            defaultKey: ["townieA","townieB","townieC","townieD"],
-            maxSize: 10,
-            runChildUpdate: true
-            }
-        );
 
         // player potions
         my.sprite.potionGroup = this.add.group({
@@ -88,9 +83,24 @@ class LVL_1 extends Phaser.Scene {
         });
         my.sprite.potionGroup.propertyValueSet("speed", this.throwSpeed);
 
-        
-
-
+        // townies
+        this.points = [
+            20, 20,
+            80, 400,
+            300, 750
+        ];
+        this.curve = new Phaser.Curves.Spline(this.points); //* Creation of the Spline curve
+        while (my.sprite.townie.length < this.maxTownies) {
+            my.sprite.townie.push(
+                this.add.follower(this.curve, this.curve.points[0].x, this.curve.points[0].y, "townieA")
+            );
+            my.sprite.townie[my.sprite.townie.length-1].setScale(2);
+            my.sprite.townie[my.sprite.townie.length-1].setVisible(false);
+            my.sprite.townie[my.sprite.townie.length-1].rx = 8;
+            my.sprite.townie[my.sprite.townie.length-1].ry = 8;
+        }
+        //my.sprite.townie = this.add.follower(this.curve, 200, 200, "townieA");
+        //my.sprite.townie.setScale(2);
         // update HTML description
         //document.getElementById('description').innerHTML = '<h2>Class Bullet.js</h2><br>A: left // D: right // Space: fire/emit // S: Next Scene'
 
@@ -98,15 +108,17 @@ class LVL_1 extends Phaser.Scene {
 
     update() {
         let my = this.my;
-
-        this.fireBullets();
-        this.townieSpawner();
-        my.sprite.wizard.update(); // update the player avatar
+        this.delay--;
+        this.townieCountdown--;
         
-        //if (Phaser.Input.Keyboard.JustDown(this.nextScene)) {
-        //    this.scene.start("arrayBoom");
-        //}
-
+        this.fireBullets();
+        if(this.delay < 0 && this.i < this.maxTownies - 1){//} && this.i < this.maxTownies){
+            this.i++;
+            this.townieRunner(this.i);
+            this.delay = 10;
+        }
+        my.sprite.wizard.update();
+        // figure out damn collisions
     }
 
     fireBullets(){
@@ -127,30 +139,34 @@ class LVL_1 extends Phaser.Scene {
                 }
             }
         }
+        
     }
 
-    townieSpawner(){
+    townieRunner(curr){
         let my = this.my;
-        // spawn townies
-        this.townieSpawnCounter--;
-        if(this.townieSpawnCounter < 0){
-            let randomX = [50, game.config.width - 50];
-            let rand = Math.floor(Math.random() * 2);
-            let randomY = Math.floor(Math.random() * (game.config.height - 50)) + 50;
-            let randomKey = Math.floor(Math.random() * 4);  // [0, 3)]
-
-            my.sprite.townieGroup.createFromConfig({
-                classType: Townie,
-                active: true,
-                key: my.sprite.townieGroup.defaultKey[randomKey],
-                setScale: { x:2, y:2 },
-                setXY: { x:randomX[rand], y:randomY}
-            });
-            
-            this.townieSpawnCounter = this.townieSpawnTimer;
         
+        if(this.townieCountdown < 0){
+            my.sprite.townie[curr].setVisible(true);
+            my.sprite.townie[curr].startFollow({
+                from: 0,
+                to: 1,
+                delay: 0,
+                duration: 5000,
+                ease: 'Sine.easeInOut',
+                repeat: 0,
+                yoyo: false,
+                rotateToPath: false,
+                rotationOffset: -90
+            });
         }
+        this.townieCountdown = this.townieCooldown;
+        
         return;
     }
+
+    collision(a, b){
+        if(Math.abs(a.x - b.x) > (a.rx + b.rx)){ return false; }
+        if(Math.abs(a.y - b.y) > (a.ry + b.ry)){ return false; }
+        return true;
+    }
 }
-          

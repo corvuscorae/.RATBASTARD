@@ -3,6 +3,8 @@ class Potion extends Phaser.GameObjects.Sprite {
         super(scene, x, y, texture, frame);
         this.visible = false;
         this.active = false;
+        this.rx = this.displayWidth / 2;
+        this.ry = this.displayHeight / 2;
         return this;
     }
 
