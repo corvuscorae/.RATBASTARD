@@ -58,6 +58,12 @@ class LVL_1 extends Phaser.Scene {
         this.right = this.input.keyboard.addKey("D");
         this.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
+        /* walls */
+        this.wall_topL = this.add.tileSprite(100, 100, 100, 16, "wall");
+        this.wall_topR = this.add.tileSprite(game.config.width - 100, 100, 100, 16, "wall");
+        this.wall_bttmL = this.add.tileSprite(0, game.config.height - 70, 500, 16, "wall");
+        this.wall_bttmL = this.add.tileSprite(game.config.width, game.config.height - 70, 500, 16, "wall");
+
         /* townies */
         // set up curves
         this.pointsA = [
@@ -134,29 +140,32 @@ class LVL_1 extends Phaser.Scene {
         my.sprite.wizard.update();
         this.firePlayerBullets();
         this.fireEnemyBullets();
-        
-        if(this.wave < 4 && this.towniesKilled >= 10 * this.wave){
-            if(this.wave == 1) { this.wave = 2; }
-            else if(this.wave == 2) { this.wave = 3; }
-            else { this.wave = 4; }
-            // console.log(`wave = ${this.wave}`); 
-            this.towniesKilled = 0;
-            this.i = 0;
-            for(let townie of my.sprite.townieMob){
-                this.toCurveStart(townie);
-                townie.setVisible(true);
-            }
-        }
+        this.waveControl();
+        this.moveRats();
 
-        
         for(let townie of my.sprite.townieMob){
             if(townie.y > 800){
                 this.kill(townie);  // kill townies who make it past the bottom of the screen
-
             }
         }
+    }
+
+    waveControl(){
+        let my = this.my;
 
         if(this.wave < 4){
+            if(this.towniesKilled >= 10 * this.wave){
+                if(this.wave == 1) { this.wave = 2; }
+                else if(this.wave == 2) { this.wave = 3; }
+                else { this.wave = 4; }
+                // console.log(`wave = ${this.wave}`); 
+                this.towniesKilled = 0;
+                this.i = 0;
+                for(let townie of my.sprite.townieMob){
+                    this.toCurveStart(townie);
+                    townie.setVisible(true);
+                }
+            }
             if(this.delay < 0){
                 //console.log(`i = ${this.i}`);
                 if(this.i <= (this.wave * 10 - 1)){
@@ -166,23 +175,6 @@ class LVL_1 extends Phaser.Scene {
                 }
             }
         }
-
-        for(let rat of my.sprite.ratPack){
-            if(rat.visible){ 
-                //rat.y -= this.throwSpeed / 3; 
-                if(rat.y > my.sprite.wizard.y + 30){ 
-                    this.physics.moveToObject(rat, my.sprite.wizard, 0, 500);
-                } else if (rat.y > -10){
-                    rat.y -= this.throwSpeed;
-                } else{
-                    rat.setVisible(false);
-                    this.ratified++;
-                    console.log(`rats = ${this.ratified}`)
-                }
-            }
-        }
-        
-
     }
 
     firePlayerBullets(){
@@ -276,6 +268,24 @@ class LVL_1 extends Phaser.Scene {
         my.sprite.ratPack[this.towniesKilled].x = townie.x;
         my.sprite.ratPack[this.towniesKilled].y = townie.y;
         my.sprite.ratPack[this.towniesKilled].setVisible(true);
+    }
+
+    moveRats(){
+        let my = this.my;
+
+        for(let rat of my.sprite.ratPack){
+            if(rat.visible){
+                if(rat.y > my.sprite.wizard.y + 30){ 
+                    this.physics.moveToObject(rat, my.sprite.wizard, 0, 500);
+                } else if (rat.y > -10){
+                    rat.y -= this.throwSpeed;
+                } else{
+                    rat.setVisible(false);
+                    this.ratified++;
+                    console.log(`rats = ${this.ratified}`)
+                }
+            }
+        }
     }
 
     toCurveStart(townie){
