@@ -5,70 +5,63 @@ class LVL_1 extends Phaser.Scene {
         super("lvl_1");
         this.my = {sprite: {}};
 
-        // player movement speeds (in pixels/tick)
-        this.playerSpeed = 5;
-        this.throwSpeed = 5;
+        // player stuff
+        this.playerSpeed = 10;
+        this.throwSpeed = 15;
         this.my.sprite.potion = [];
         this.maxPots = 10;
+        //this.potionCooldown = 3;
+        //this.cooldownCounter = 0;
 
         // townie stuff
+        this.my.sprite.ratPack = [];
         this.my.sprite.townieMob = [];
-        this.maxTownies = 10;
+        this.maxTownies = 30;
         this.townieCooldown = 10;
         this.townieCountdown = 0;
         this.delay = 100;
         this.towniesKilled = 0;
-        this.i = -1;
-
-        this.potionCooldown = 3;
-        this.cooldownCounter = 0;
-
+        this.i = 0;
+        this.my.sprite.knife = [];
+        this.maxKnives = 20;
+        this.knifeSpawn = 10;
+        this.minKnifeCooldown = 3;
+        this.ratified = 0;
+        
         // waves
         this.wave = 1;
     }
 
     preload() {
         this.load.setPath("./assets/");
+
+        this.load.image("wall", "wall.png");
         
         this.load.image("wizard", "wizard.png");            // player
         this.load.image("playerPotion", "potionGreen.png"); // player bullet
         this.load.image("ratA", "ratBrown.png");            // rats
-        this.load.image("ratB", "ratGrey.png");             
         this.load.image("ghost", "ghost.png");
-        // townies
+
         this.load.image("townieA", "townie_1_1.png");       // townies
-        this.load.image("townieB", "townie_1_2.png");
-        this.load.image("townieC", "townie_2_1.png");
-        this.load.image("townieD", "townie_2_2.png");
+        this.load.image("townieB", "townie_1_2.png");   
+        this.load.image("townieC", "townie_2_1.png");   
+        this.load.image("townieD", "townie_2_2.png");   
         this.load.image("knife", "knife.png");              // townie bullets
-        this.load.image("sword", "sword.png");
-        // knights
-        this.load.image("knightA", "knight_1.png");         // knights
-        this.load.image("knightB", "knight_2.png");
-        this.load.image("axeSingle", "axeSingle.png");      // knife bullets
-        this.load.image("axeDouble", "axeDouble.png");
-        // boss
-        this.load.image("enemyWizard", "enemyWizard.png");  // boss
-        this.load.image("enemyStaff", "enemyStaff.png");
-        this.load.image("enemyBullet", "enemyBullet.png");  // boss bullet
     }
 
     create() {
         let my = this.my;
+        let townies = ["townieA", "townieB", "townieC", "townieD"];
 
         // Create key objects
         this.left = this.input.keyboard.addKey("A");
         this.right = this.input.keyboard.addKey("D");
         this.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
-        // player
-        my.sprite.wizard = new Player(
-            this, game.config.width/2, 40, "wizard", null, this.left, this.right, 5);
-        my.sprite.wizard.setScale(3);
-
-        // townies
-        this.points = [
-            -100,-100,
+        /* townies */
+        // set up curves
+        this.pointsA = [
+            -100,200,
             0, 200,
             600, 200,
             600, 300,
@@ -83,16 +76,49 @@ class LVL_1 extends Phaser.Scene {
             300, 700,
             300, 900
         ];
-        this.curve = new Phaser.Curves.Spline(this.points); //* Creation of the Spline curve
-        while (my.sprite.townieMob.length < this.maxTownies) {
-            my.sprite.townieMob.push(
-                this.add.follower(this.curve, this.curve.points[0].x, this.curve.points[0].y, "townieA")
-            );
-            my.sprite.townieMob[my.sprite.townieMob.length-1].setScale(2);
-            //my.sprite.townieMob[my.sprite.townieMob.length-1].setVisible(false);
-            my.sprite.townieMob[my.sprite.townieMob.length-1].rx = 8;
-            my.sprite.townieMob[my.sprite.townieMob.length-1].ry = 8;
+        this.pointsB = [
+            game.config.width + 100, 450,
+            600, 450,
+            0, 450,
+            0, 250,
+            600, 250,
+            600, 650,
+            0, 650,
+            300, 650,
+            300, 900
+        ]
+        this.curveA = new Phaser.Curves.Spline(this.pointsA);     // curveA
+        this.curveB = new Phaser.Curves.Spline(this.pointsB);     // curveB
+
+        // fill arrays with townies and rats
+        for(let n = 0; n < this.maxTownies; n++){
+            // push to ratPack
+            my.sprite.ratPack[n] = this.physics.add.image(-100, -100, "ratA");
+            my.sprite.ratPack[n].setScale(2);
+            my.sprite.ratPack[n].setVisible(false);
+
+            // push to townieMob
+            let rand = Math.floor(Math.random() * 4);
+            if(n % 2 == 0){
+                my.sprite.townieMob.push(
+                this.add.follower(this.curveA, this.curveA.points[0].x, this.curveA.points[0].y, townies[rand])
+                );
+                my.sprite.townieMob[n].spawnLocation = "A";
+            } else{
+                my.sprite.townieMob.push(
+                this.add.follower(this.curveB, this.curveB.points[0].x, this.curveB.points[0].y, townies[rand])
+                );
+                my.sprite.townieMob[n].spawnLocation = "B";
+            }
+            my.sprite.townieMob[n].setScale(2);
+            my.sprite.townieMob[n].rx = 8;
+            my.sprite.townieMob[n].ry = 8;
         }
+
+        /* player */
+        my.sprite.wizard = new Player(
+            this, game.config.width/2, 40, "wizard", null, this.left, this.right, 5);
+        my.sprite.wizard.setScale(3);
 
         // update HTML description
         //document.getElementById('description').innerHTML = '<h2>Class Bullet.js</h2><br>A: left // D: right // Space: fire/emit // S: Next Scene'
@@ -103,45 +129,72 @@ class LVL_1 extends Phaser.Scene {
         let my = this.my;
         this.delay--;
         this.townieCountdown--;
+        this.knifeSpawn--;
+
+        my.sprite.wizard.update();
+        this.firePlayerBullets();
+        this.fireEnemyBullets();
         
-        this.fireBullets();
-        if(this.towniesKilled == 10 * this.wave){
-            this.wave++;
+        if(this.wave < 4 && this.towniesKilled >= 10 * this.wave){
+            if(this.wave == 1) { this.wave = 2; }
+            else if(this.wave == 2) { this.wave = 3; }
+            else { this.wave = 4; }
+            // console.log(`wave = ${this.wave}`); 
             this.towniesKilled = 0;
-            this.i = -1;
+            this.i = 0;
             for(let townie of my.sprite.townieMob){
-                townie.x = -100;
-                townie.y = -100;
+                this.toCurveStart(townie);
                 townie.setVisible(true);
             }
         }
+
+        
         for(let townie of my.sprite.townieMob){
-            if(townie.y > 800){ 
-                this.towniesKilled++; 
-                townie.x = -100;
-                townie.y = -100;
-                townie.stopFollow();
-                //console.log("rip " + this.wave); 
+            if(townie.y > 800){
+                this.kill(townie);  // kill townies who make it past the bottom of the screen
+
             }
         }
-        if(this.delay < 0 && this.i < this.maxTownies - 1){//} && this.i < this.maxTownies){
-            this.i++;
-            this.townieRunner(this.i);
-            this.delay = 10;
+
+        if(this.wave < 4){
+            if(this.delay < 0){
+                //console.log(`i = ${this.i}`);
+                if(this.i <= (this.wave * 10 - 1)){
+                    this.townieRunner(this.i);
+                    this.i++;
+                    this.delay = 30 / this.wave;
+                }
+            }
         }
-        my.sprite.wizard.update();
+
+        for(let rat of my.sprite.ratPack){
+            if(rat.visible){ 
+                //rat.y -= this.throwSpeed / 3; 
+                if(rat.y > my.sprite.wizard.y + 30){ 
+                    this.physics.moveToObject(rat, my.sprite.wizard, 0, 500);
+                } else if (rat.y > -10){
+                    rat.y -= this.throwSpeed;
+                } else{
+                    rat.setVisible(false);
+                    this.ratified++;
+                    console.log(`rats = ${this.ratified}`)
+                }
+            }
+        }
+        
 
     }
 
-    fireBullets(){
+    firePlayerBullets(){
         let my = this.my;
-        this.cooldownCounter--; 
 
         // Check for bullet being fired
         if (Phaser.Input.Keyboard.JustDown(this.space)) {
             if(my.sprite.potion.length < this.maxPots){
                 my.sprite.potion.push(this.add.sprite(
-                    my.sprite.wizard.x, my.sprite.wizard.y, "playerPotion")
+                    my.sprite.wizard.x + (my.sprite.wizard.displayWidth/3), 
+                    my.sprite.wizard.y + (my.sprite.wizard.displayHeight/4), 
+                    "playerPotion")
                 );
                 my.sprite.potion[my.sprite.potion.length-1].setScale(2);
             }
@@ -152,13 +205,12 @@ class LVL_1 extends Phaser.Scene {
         // Check for collision with townies
         for (let potion of my.sprite.potion) {
             for (let townie of my.sprite.townieMob) {
-                if (townie.visible && this.collision(townie, potion)) {
-                    // clear out bullet -- put y offscreen, will get reaped next update
-                    console.log("hit!");
-                    potion.y = 900;
-                    townie.visible = false;
-                    townie.stopFollow();
-                    this.towniesKilled++;
+                if (townie.visible){
+                    if(this.collision(townie, potion)) {
+                        this.rat(townie);
+                        this.kill(townie);
+                        potion.y = 900;
+                    }
                 }
             }
         }
@@ -167,19 +219,88 @@ class LVL_1 extends Phaser.Scene {
         for (let potion of my.sprite.potion) {
             potion.y += this.throwSpeed;
         }
+        return;
+    }
+
+    fireEnemyBullets(){
+        let my = this.my;
+
+        let townie = my.sprite.townieMob[Math.floor(Math.random() * this.maxTownies)];
+
+        if(this.knifeSpawn < 0){
+            // Check for bullet being fired
+            if (townie.visible == true) {
+                    if(my.sprite.knife.length < this.maxKnives){
+                        my.sprite.knife.push(this.add.sprite(
+                            townie.x, townie.y, "knife")
+                        );
+                        my.sprite.knife[my.sprite.knife.length-1].setScale(2);
+                    }
+            }
+
+            my.sprite.knife = my.sprite.knife.filter((knife) => knife.y > -20);
+            // COLLISION
+            // Check for collision with wizard
+            for (let knife of my.sprite.knife) {
+                if (this.collision(knife, my.sprite.wizard)) {
+                    // clear out bullet -- put y offscreen, will get reaped next update
+                    //console.log("ouch!");
+                    knife.y = -30;
+                    // health stuff
+                }
+            }
+        }
+
+        this.knifeSpawn = Math.floor(Math.random() * (6 / this.wave));  
+        // Make all of the bullets move
+        for (let knife of my.sprite.knife) {
+            knife.y -= this.throwSpeed/2;
+        }
         
+        return;
+    }
+
+    kill(townie){
+        if(townie.visible){
+            townie.visible = false;
+            townie.stopFollow();
+            this.toCurveStart(townie);
+            this.towniesKilled++;
+            console.log(this.towniesKilled);
+        }
+    }
+
+    rat(townie){
+        let my = this.my;
+
+        my.sprite.ratPack[this.towniesKilled].x = townie.x;
+        my.sprite.ratPack[this.towniesKilled].y = townie.y;
+        my.sprite.ratPack[this.towniesKilled].setVisible(true);
+    }
+
+    toCurveStart(townie){
+        if(townie.spawnLocation == "A"){
+            townie.x = this.curveA.points[0].x;
+            townie.y = this.curveA.points[0].y;
+        }
+        if(townie.spawnLocation == "B"){
+            townie.x = this.curveB.points[0].x;
+            townie.y = this.curveB.points[0].y;
+        }
     }
 
     townieRunner(curr){
         let my = this.my;
         
+        if(my.sprite.townieMob[curr].visible == false){ return; }
+
         if(this.townieCountdown < 0){
             //my.sprite.townieMob[curr].setVisible(true);
             my.sprite.townieMob[curr].startFollow({
                 from: 0,
                 to: 1,
                 delay: 0,
-                duration: 30000 - (10000 * (this.wave - 1)), // make faster with subsequent waves
+                duration: 30000 - (5000 * (this.wave - 1)), // make faster with subsequent waves
                 ease: 'Sine.easeInOut',
                 repeat: 0,
                 yoyo: false,
