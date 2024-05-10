@@ -69,13 +69,16 @@ class LVL_1 extends Phaser.Scene {
 
         /* environment */
         this.walls = {
-            topL  : this.add.tileSprite(100, 110, 112, 32, "wall"),
-            topR  : this.add.tileSprite(w - 100, 110, 112, 32, "wall"),
-            bttmL : this.add.tileSprite(0, h - 70, 512, 32, "wall"),
-            bttmR : this.add.tileSprite(w, h - 70, 512, 32, "wall"),
-            midL  : this.add.tileSprite(w/3, h/2.3, 208, 32, "square"),
-            midR  : this.add.tileSprite(w - w/3, h - h/3.3, 208, 32, "square")
+            topL  : this.add.tileSprite(100, 110, 64, 16, "wall"),
+            topR  : this.add.tileSprite(w - 100, 110, 64, 16, "wall"),
+            bttmL : this.add.tileSprite(0, h - 70, 256, 16, "wall"),
+            bttmR : this.add.tileSprite(w, h - 70, 256, 16, "wall"),
+            midL  : this.add.tileSprite(w/3, h/2.3, 96, 16, "square"),
+            midR  : this.add.tileSprite(w - w/3, h - h/3.3, 96, 16, "square")
         };
+        for(let x in this.walls)[
+            this.walls[x].setScale(2)
+        ]
 
         /* player */
         my.sprite.wizard = new Player(

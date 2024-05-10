@@ -11,6 +11,7 @@ let config = {
     fps: { forceSetTimeOut: true, target: 60 },   // ensure consistent timing across machines
     width: 600,
     height: 800,
+    backgroundColor: '0f0e0b',
     physics: {
         default: 'arcade',
         arcade: {
