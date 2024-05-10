@@ -28,6 +28,13 @@ class START extends Phaser.Scene {
         this.load.image("townieC", "townie_2_1.png");   
         this.load.image("townieD", "townie_2_2.png");   
         this.load.image("knife", "knife.png");              // townie bullets
+
+        this.load.audio("sfx_bg", "bg.ogg");                // audio
+        this.load.audio("sfx_enemyHit", "enemyHit.ogg");
+        this.load.audio("sfx_enemyHit", "enemyHit.ogg");
+        this.load.audio("sfx_rip", "rip.ogg");
+        this.load.audio("sfx_win1", "win (1).ogg");
+        this.load.audio("sfx_win2", "win (2).ogg");
     
     }
 
