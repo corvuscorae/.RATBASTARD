@@ -70,6 +70,15 @@ class LVL_1 extends Phaser.Scene {
         this.wall_bttmR = this.add.tileSprite(w, h - 70, 512, 32, "wall");
         this.wall_midL = this.add.tileSprite(w/3, h/2.3, 208, 32, "square");
         this.wall_midR = this.add.tileSprite(w - w/3, h - h/3.3, 208, 32, "square");
+        
+        ///////////////////////////// TODO: /////////////////////////////
+        //  > GROUP WALLS!!!!!!!!
+        //  > SHOW SCORE (RATS MADE) ON SCREEN (HEALTH TOO BTW)
+        //  > MAKE HEALTH MECHANICS + DEATH STATE
+        //  > MAKE START SCREEN
+        //  > MAKE END SCREEN (+ GAME RESET)
+        //  > bonus elements if time allows
+        /////////////////////////////////////////////////////////////////
 
         /* townies */
         // set up curves
