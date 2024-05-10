@@ -27,6 +27,7 @@ class LVL_1 extends Phaser.Scene {
         this.knifeSpawn = 10;
         this.minKnifeCooldown = 3;
         this.ratified = 0;
+        this.wallspeed = 3;
         
         // waves
         this.wave = 1;
@@ -36,6 +37,7 @@ class LVL_1 extends Phaser.Scene {
         this.load.setPath("./assets/");
 
         this.load.image("wall", "wall.png");
+        this.load.image("square", "square.png");
         
         this.load.image("wizard", "wizard.png");            // player
         this.load.image("playerPotion", "potionGreen.png"); // player bullet
@@ -59,10 +61,15 @@ class LVL_1 extends Phaser.Scene {
         this.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
 
         /* walls */
-        this.wall_topL = this.add.tileSprite(100, 100, 100, 16, "wall");
-        this.wall_topR = this.add.tileSprite(game.config.width - 100, 100, 100, 16, "wall");
-        this.wall_bttmL = this.add.tileSprite(0, game.config.height - 70, 500, 16, "wall");
-        this.wall_bttmL = this.add.tileSprite(game.config.width, game.config.height - 70, 500, 16, "wall");
+        let w = game.config.width;
+        let h = game.config.height;
+
+        this.wall_topL = this.add.tileSprite(100, 100, 112, 32, "wall");
+        this.wall_topR = this.add.tileSprite(w - 100, 100, 112, 32, "wall");
+        this.wall_bttmL = this.add.tileSprite(0, h - 70, 512, 32, "wall");
+        this.wall_bttmR = this.add.tileSprite(w, h - 70, 512, 32, "wall");
+        this.wall_midL = this.add.tileSprite(w/3, h/2.3, 208, 32, "square");
+        this.wall_midR = this.add.tileSprite(w - w/3, h - h/3.3, 208, 32, "square");
 
         /* townies */
         // set up curves
@@ -142,6 +149,8 @@ class LVL_1 extends Phaser.Scene {
         this.fireEnemyBullets();
         this.waveControl();
         this.moveRats();
+        this.moveWallX(this.wall_midL, -1);
+        this.moveWallX(this.wall_midR, 1);
 
         for(let townie of my.sprite.townieMob){
             if(townie.y > 800){
@@ -177,6 +186,12 @@ class LVL_1 extends Phaser.Scene {
         }
     }
 
+    collision(a, b) {
+        if (Math.abs(a.x - b.x) > (a.displayWidth/2 + b.displayWidth/2)) return false;
+        if (Math.abs(a.y - b.y) > (a.displayHeight/2 + b.displayHeight/2)) return false;
+        return true;
+    }
+
     firePlayerBullets(){
         let my = this.my;
 
@@ -194,12 +209,21 @@ class LVL_1 extends Phaser.Scene {
 
         my.sprite.potion = my.sprite.potion.filter((potion) => potion.y < game.config.height + 20);
         // COLLISION
-        // Check for collision with townies
         for (let potion of my.sprite.potion) {
+            //check for collision with walls
+            if( this.collision(potion, this.wall_topL) || 
+                this.collision(potion, this.wall_topR) ||
+                this.collision(potion, this.wall_bttmL) ||
+                this.collision(potion, this.wall_bttmR) ||
+                this.collision(potion, this.wall_midL) ||
+                this.collision(potion, this.wall_midR) ){
+                    potion.y = 900;
+            }
             for (let townie of my.sprite.townieMob) {
-                if (townie.visible){
+                // Check for collision with townies
+                if(townie.visible){
                     if(this.collision(townie, potion)) {
-                        this.rat(townie);
+                        this.makeRat(townie);
                         this.kill(townie);
                         potion.y = 900;
                     }
@@ -235,11 +259,17 @@ class LVL_1 extends Phaser.Scene {
             // Check for collision with wizard
             for (let knife of my.sprite.knife) {
                 if (this.collision(knife, my.sprite.wizard)) {
-                    // clear out bullet -- put y offscreen, will get reaped next update
                     //console.log("ouch!");
                     knife.y = -30;
                     // health stuff
+
                 }
+                if( this.collision(knife, this.wall_topL) || 
+                    this.collision(knife, this.wall_topR ||
+                    this.collision(knife, this.wall_midL) ||
+                    this.collision(knife, this.wall_midR))){
+                        knife.y = -30;
+                    }
             }
         }
 
@@ -259,32 +289,6 @@ class LVL_1 extends Phaser.Scene {
             this.toCurveStart(townie);
             this.towniesKilled++;
             console.log(this.towniesKilled);
-        }
-    }
-
-    rat(townie){
-        let my = this.my;
-
-        my.sprite.ratPack[this.towniesKilled].x = townie.x;
-        my.sprite.ratPack[this.towniesKilled].y = townie.y;
-        my.sprite.ratPack[this.towniesKilled].setVisible(true);
-    }
-
-    moveRats(){
-        let my = this.my;
-
-        for(let rat of my.sprite.ratPack){
-            if(rat.visible){
-                if(rat.y > my.sprite.wizard.y + 30){ 
-                    this.physics.moveToObject(rat, my.sprite.wizard, 0, 500);
-                } else if (rat.y > -10){
-                    rat.y -= this.throwSpeed;
-                } else{
-                    rat.setVisible(false);
-                    this.ratified++;
-                    console.log(`rats = ${this.ratified}`)
-                }
-            }
         }
     }
 
@@ -323,9 +327,39 @@ class LVL_1 extends Phaser.Scene {
         return;
     }
 
-    collision(a, b) {
-        if (Math.abs(a.x - b.x) > (a.displayWidth/2 + b.displayWidth/2)) return false;
-        if (Math.abs(a.y - b.y) > (a.displayHeight/2 + b.displayHeight/2)) return false;
-        return true;
+    makeRat(townie){
+        let my = this.my;
+
+        my.sprite.ratPack[this.towniesKilled].x = townie.x;
+        my.sprite.ratPack[this.towniesKilled].y = townie.y;
+        my.sprite.ratPack[this.towniesKilled].setVisible(true);
+    }
+
+    moveRats(){
+        let my = this.my;
+
+        for(let rat of my.sprite.ratPack){
+            if(rat.visible){
+                if(rat.y > my.sprite.wizard.y + 30){ 
+                    this.physics.moveToObject(rat, my.sprite.wizard, 0, 500);
+                } else if (rat.y > -10){
+                    rat.y -= this.throwSpeed;
+                } else{
+                    rat.setVisible(false);
+                    this.ratified++;
+                    console.log(`rats = ${this.ratified}`)
+                }
+            }
+        }
+    }
+
+    moveWallX(wall, direction){
+        wall.x += this.wallspeed * direction;
+        if(wall.x < -wall.displayWidth){ 
+            wall.x = game.config.width + wall.displayWidth; 
+        }
+        if(wall.x > game.config.width + wall.displayWidth){//} + wall.displayWidth){ 
+            wall.x = -wall.displayWidth; 
+        }
     }
 }
