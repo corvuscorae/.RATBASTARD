@@ -4,68 +4,27 @@ class LVL_1 extends Phaser.Scene {
     constructor() {
         super("lvl_1");
         this.my = {sprite: {}};
-
-        // player stuff
-        this.playerSpeed = 10;
-        this.throwSpeed = 15;
-        this.my.sprite.potion = [];
-        this.maxPots = 10;
-        this.hp = 3;
-
-        // townie stuff
-        this.my.sprite.ratPack = [];
-        this.my.sprite.townieMob = [];
-        this.maxTownies = 30;
-        this.townieCooldown = 10;
-        this.townieCountdown = 0;
-        this.delay = 100;
-        this.towniesKilled = 0;
-        this.i = 0;
-        this.my.sprite.knife = [];
-        this.maxKnives = 20;
-        this.knifeSpawn = 10;
-        this.minKnifeCooldown = 3;
-        this.ratified = 0;
-        this.wallspeed = 3;
-        
-        // waves
-        this.wave = 1;
     }
 
-    preload() {
-        this.load.setPath("./assets/");
-
-        this.load.bitmapFont("pixel_font", "pixel.png", "pixel.xml");
-
-        this.load.image("wall", "wall.png");
-        this.load.image("square", "square.png");
-
-        this.load.image("heart", "heart.png");
-        
-        this.load.image("wizard", "wizard.png");            // player
-        this.load.image("playerPotion", "potionGreen.png"); // player bullet
-        this.load.image("ratA", "ratBrown.png");            // rats
-        this.load.image("ghost", "ghost.png");
-
-        this.load.image("townieA", "townie_1_1.png");       // townies
-        this.load.image("townieB", "townie_1_2.png");   
-        this.load.image("townieC", "townie_2_1.png");   
-        this.load.image("townieD", "townie_2_2.png");   
-        this.load.image("knife", "knife.png");              // townie bullets
+    preload() { 
+        // loaded on start scene
     }
 
     create() {
+        this.init_variables();
+
         let my = this.my;        
         let w = game.config.width;
         let h = game.config.height;
         
-        this.init_UI();
         this.init_townie();
+        this.init_UI();
 
         /* key objects */
         this.left = this.input.keyboard.addKey("A");
         this.right = this.input.keyboard.addKey("D");
         this.space = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.SPACE);
+        this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
 
         /* environment */
         this.walls = {
@@ -86,8 +45,6 @@ class LVL_1 extends Phaser.Scene {
         my.sprite.wizard.setScale(3);
 
         ///////////////////////////// TODO: /////////////////////////////
-        //  > MAKE START SCREEN
-        //  > MAKE END SCREEN (+ GAME RESET)
         //  > IMPLEMENT SOUND LMAO
         //  > bonus elements if time allows
         /////////////////////////////////////////////////////////////////
@@ -99,8 +56,8 @@ class LVL_1 extends Phaser.Scene {
         this.fireEnemyBullets();
 
         if(this.hp > 0){
-            this.delay--;
-            this.knifeSpawn--;
+        this.delay--;
+        this.knifeSpawn--;
 
             my.sprite.wizard.update();
             this.firePlayerBullets();
@@ -116,7 +73,11 @@ class LVL_1 extends Phaser.Scene {
                 }
             }
         }
-        else{ this.deathHandler(true); }
+        else{
+            for(let potion of my.sprite.potion){ potion.y = -20; }
+            this.flashCountdown--;
+            this.deathHandler(); 
+        }
     }
 
     waveControl(){
@@ -331,14 +292,16 @@ class LVL_1 extends Phaser.Scene {
     deathHandler(){
         let my = this. my;
 
+        // text
         this.score.setVisible(false);
         this.health.setVisible(false);
 
         this.finalScore.setText(`SCORE:${this.ratified}`);
         this.finalScore.setVisible(true);
         this.dead.setVisible(true);
-        my.sprite.wizard.setVisible(false);
 
+        // sprites
+        my.sprite.wizard.setVisible(false);
         my.sprite.ghost.visible = true;
         if(this.townieCountdown < 0){   // using a random countdown here bc that's what worked *shrug*
             my.sprite.ghost.startFollow({
@@ -354,10 +317,58 @@ class LVL_1 extends Phaser.Scene {
             });
         }
         this.townieCountdown = this.townieCooldown;
+
+        this.restartPrompt();
         
     }
 
-    /* OBJECT INITILIAZITION */
+    restartPrompt(){
+        // change scenes
+        this.restart.setVisible(true);
+        if(this.flashCountdown < -100){ // funky lil text effect
+            this.restart.fontSize = 20;
+            if(this.flashCountdown < -(this.offTime)){
+                this.restart.fontSize = 23;
+                this.flashCountdown = this.onTime;
+            }
+        }
+        if (Phaser.Input.Keyboard.JustDown(this.enter)) {
+            this.scene.start("start");
+        }
+    }
+
+    /* INITILIAZITION */
+    init_variables(){ /* scene variables */
+        // player stuff
+        this.playerSpeed = 10;
+        this.throwSpeed = 15;
+        this.my.sprite.potion = [];
+        this.maxPots = 10;
+        this.hp = 3;
+
+        // townie stuff
+        this.my.sprite.ratPack = [];
+        this.my.sprite.townieMob = [];
+        this.maxTownies = 30;
+        this.townieCooldown = 10;
+        this.townieCountdown = 0;
+        this.delay = 100;
+        this.towniesKilled = 0;
+        this.i = 0;
+        this.my.sprite.knife = [];
+        this.maxKnives = 20;
+        this.knifeSpawn = 10;
+        this.minKnifeCooldown = 3;
+        this.ratified = 0;
+        this.wallspeed = 3;
+        
+        // waves
+        this.wave = 1;
+        this.onTime = 40;
+        this.offTime = 20;
+        this.flashCountdown = 0;
+    }
+
     init_townie(){/* townies */
         let my = this.my;
         
@@ -436,9 +447,9 @@ class LVL_1 extends Phaser.Scene {
         for(let h of this.hearts){ h.setScale(2.5); }
         // death
         this.dead = this.add.bitmapText(w / 2, h / 3.5, 
-                    "pixel_font", `U DIED :(\n\n`, 50).setOrigin(0.5);
+                    "pixel_font", `U DIED :(`, 50).setOrigin(0.5);
         this.dead.setVisible(false);
-        this.finalScore = this.add.bitmapText(w / 2, h / 2,     
+        this.finalScore = this.add.bitmapText(w / 2, h / 2 + 50,     
                     "pixel_font", `\n\nFINAL:${this.ratified}`, 40).setOrigin(0.5);
         this.finalScore.setVisible(false);
         this.pointsC = [
@@ -456,6 +467,9 @@ class LVL_1 extends Phaser.Scene {
         my.sprite.ghost = this.add.follower(this.curveC, this.curveC.points[0].x, this.curveC.points[0].y, "ghost");
         my.sprite.ghost.setScale(2);
         my.sprite.ghost.visible = false;
+        this.restart = this.add.bitmapText(w / 2, h / 1.5 - 25, 
+                    "pixel_font", `press ENTER to start over`, 20).setOrigin(0.5);
+        this.restart.setVisible(false);
 
         // update HTML description
         document.getElementById('description').innerHTML = 
