@@ -2,7 +2,7 @@ class START extends Phaser.Scene {
     constructor() {
         super("start");
         this.my = {sprite: {}};
-        this.crawlSpeed = 200;
+        this.crawlSpeed = 2;
         this.onTime = 40;
         this.offTime = this.onTime / 2;
         this.flashCountdown = this.onTime;
@@ -30,11 +30,11 @@ class START extends Phaser.Scene {
         this.load.image("knife", "knife.png");              // townie bullets
 
         this.load.audio("sfx_bg", "bg.ogg");                // audio
+        this.load.audio("sfx_intro", "intro.ogg");                
         this.load.audio("sfx_enemyHit", "enemyHit.ogg");
-        this.load.audio("sfx_enemyHit", "enemyHit.ogg");
+        this.load.audio("sfx_playerHit", "playerHit.ogg");
         this.load.audio("sfx_rip", "rip.ogg");
-        this.load.audio("sfx_win1", "win (1).ogg");
-        this.load.audio("sfx_win2", "win (2).ogg");
+        this.load.audio("sfx_win", "win.ogg");
     
     }
 
@@ -42,6 +42,18 @@ class START extends Phaser.Scene {
         let my = this.my;
         let w = game.config.width;
         let h = game.config.height;
+
+        //this.dt = [0, 200, 0];
+        //this.count = 0;
+        //this.detuner = 0;
+        this.bgMusic = 
+            this.sound.add("sfx_intro",{
+                volume: 0.7,
+                rate: 1,
+                detune: -2400,
+                loop: true
+            });
+        this.bgMusic.play();
 
         // key object for ENTER
         this.enter = this.input.keyboard.addKey(Phaser.Input.Keyboard.KeyCodes.ENTER);
@@ -76,6 +88,7 @@ class START extends Phaser.Scene {
 
     update() {
         this.flashCountdown--;
+        //this.detuner++;
 
         let w = game.config.width;
         let h = game.config.height;
@@ -102,10 +115,15 @@ class START extends Phaser.Scene {
 
             // change scenes
             if (Phaser.Input.Keyboard.JustDown(this.enter)) {
+                this.bgMusic.stop();
                 this.scene.start("lvl_1");
             }
         }
         
+        //if(this.detuner % 120 == 0){
+        //    this.count++;
+        //}
+        //this.bgMusic.setDetune(this.dt[this.count % 3]);
     }
 
 }

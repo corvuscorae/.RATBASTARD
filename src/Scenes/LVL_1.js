@@ -109,6 +109,45 @@ class LVL_1 extends Phaser.Scene {
         this.onTime = 40;
         this.offTime = 20;
         this.flashCountdown = 0;
+
+        // sounds
+        this.endSound = true;
+        this.bgMusic = 
+            this.sound.add("sfx_bg",{
+                volume: 0.7,
+                rate: 1,
+                detune: 0,
+                loop: false
+            });
+        this.bgMusic.play();
+        this.hitPlayer = 
+            this.sound.add("sfx_playerHit",{
+                volume: 0.7,
+                rate: 1,
+                detune: 0,
+                loop: false
+            });
+        this.hitTownie = 
+            this.sound.add("sfx_enemyHit",{
+                volume: 0.7,
+                rate: 1,
+                detune: 0,
+                loop: false
+            });
+        this.rip = 
+            this.sound.add("sfx_rip",{
+                volume: 0.7,
+                rate: 1,
+                detune: 0,
+                loop: false
+            });
+        this.win = 
+            this.sound.add("sfx_win",{
+                volume: 0.7,
+                rate: 1,
+                detune: 0,
+                loop: false
+            });
     }
 
     init_townie(){/* townies */
@@ -281,6 +320,7 @@ class LVL_1 extends Phaser.Scene {
             for (let townie of my.sprite.townieMob) {
                 if(townie.visible){
                     if(this.collision(townie, potion)) {
+                        this.hitTownie.play();
                         this.makeRat(townie);
                         this.kill(townie);
                         potion.y = 900;
@@ -323,6 +363,7 @@ class LVL_1 extends Phaser.Scene {
                 // check for collision with wizard
                 if (this.collision(knife, my.sprite.wizard)) {
                     //console.log("ouch!");
+                    this.hitPlayer.play();
                     knife.y = -30;
                     // health
                     this.hp--;
@@ -441,6 +482,8 @@ class LVL_1 extends Phaser.Scene {
         this.end.setVisible(true);
 
         if(this.hp > 0){
+            if(this.endSound == true){ this.win.play(); this.endSound = false; }
+            this.bgMusic.setDetune(500);
             if(this.ratified == 0){
                 this.end.setText("ok then!");
             } else if(this.ratified < 5){
@@ -457,6 +500,8 @@ class LVL_1 extends Phaser.Scene {
             my.sprite.endSprite.setTexture("wizard");
         }
         else{ 
+            if(this.endSound == true){ this.rip.play(); this.endSound = false; }
+            this.bgMusic.setDetune(-1000);
             this.end.setText("u died :(");
             my.sprite.endSprite.setTexture("ghost");
         }
@@ -489,7 +534,8 @@ class LVL_1 extends Phaser.Scene {
             }
         }
         if (Phaser.Input.Keyboard.JustDown(this.enter)) {
-            this.scene.start("start");
+                this.bgMusic.stop();
+                this.scene.start("start");
         }
         
     }
