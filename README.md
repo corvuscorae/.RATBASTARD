@@ -1,9 +1,9 @@
 **Rat Bastard the Mage**
 
-[[ GAME DESCRIPTION ]]
+|| GAME DESCRIPTION ||
 A game in the style of a gallery shooter wherein the player controls a wizard who shoots potions at townies to turn them into rats.
 
-[[ CREDITS ]]
+|| CREDITS ||
 > SPRITES FROM [Kenny Assets](https://kenney.nl/assets/tiny-dungeon) | 
 > SPRITES FROM [Kenny Assets](https://kenney.nl/assets/tiny-battle) | 
 > SFX FROM [Kenny Assets](https://kenney.nl/assets/music-jingles) | 
