@@ -82,7 +82,7 @@ class START extends Phaser.Scene {
         
         // update HTML description
         document.getElementById('description').innerHTML = 
-            "<h2> > RAT BASTARD THE MAGE</h2><br>a game about a wizard who simply loves rats<br>[W, D to move | SPACE to throw]";
+            "<h2> > RAT BASTARD THE MAGE</h2><br>a game about a wizard who simply loves rats";
 
     }
 
