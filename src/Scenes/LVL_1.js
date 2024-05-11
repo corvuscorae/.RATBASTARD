@@ -42,6 +42,11 @@ class LVL_1 extends Phaser.Scene {
         my.sprite.wizard = new Player(
             this, game.config.width/2, 65, "wizard", null, this.left, this.right, 5);
         my.sprite.wizard.setScale(3);
+
+        ///////////////////////////// TODO: /////////////////////////////
+        //  > IMPLEMENT SOUND LMAO
+        //  > bonus elements if time allows
+        /////////////////////////////////////////////////////////////////
     }
 
     update() {
@@ -249,8 +254,7 @@ class LVL_1 extends Phaser.Scene {
 
         // update HTML description
         document.getElementById('description').innerHTML = 
-            "<h2> > RAT BASTARD THE MAGE</h2><br>a game about a wizard who simply loves rats";
-
+            "<h2> > RAT BASTARD THE MAGE</h2><br>a game about a wizard who simply loves rats<br>[W, D to move | SPACE to throw]";
     }
 
     waveControl(){
