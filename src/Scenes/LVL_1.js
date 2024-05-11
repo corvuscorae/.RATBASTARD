@@ -7,7 +7,7 @@ class LVL_1 extends Phaser.Scene {
     }
 
     preload() { 
-        // loaded on start scene
+        // loaded on start screen
     }
 
     create() {
@@ -42,11 +42,6 @@ class LVL_1 extends Phaser.Scene {
         my.sprite.wizard = new Player(
             this, game.config.width/2, 65, "wizard", null, this.left, this.right, 5);
         my.sprite.wizard.setScale(3);
-
-        ///////////////////////////// TODO: /////////////////////////////
-        //  > IMPLEMENT SOUND LMAO
-        //  > bonus elements if time allows
-        /////////////////////////////////////////////////////////////////
     }
 
     update() {
