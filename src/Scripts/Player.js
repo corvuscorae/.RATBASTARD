@@ -1,9 +1,4 @@
 class Player extends Phaser.GameObjects.Sprite {
-
-    // x,y - starting sprite location
-    // spriteKey - key for the sprite image asset
-    // leftKey - key for moving left
-    // rightKey - key for moving right
     constructor(scene, x, y, texture, frame, leftKey, rightKey, playerSpeed) {
         super(scene, x, y, texture, frame);
 
